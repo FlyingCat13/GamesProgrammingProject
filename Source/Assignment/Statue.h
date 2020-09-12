@@ -2,28 +2,31 @@
 
 #pragma once
 
-#include "Components/StaticMeshComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interactable.h"
-#include "InteractableDoor.generated.h"
+#include "Inventoriable.h"
+#include "Statue.generated.h"
 
 UCLASS()
-class ASSIGNMENT_API AInteractableDoor : public AActor, public IInteractable
+class ASSIGNMENT_API AStatue : public AActor, public IInteractable, public IInventoriable
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AInteractableDoor();
+	AStatue();
 
-	// Door frame mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-		class UStaticMeshComponent* DoorFrame;
+		class UStaticMeshComponent* StatueMesh;
 
-	// Door mesh
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-		class UStaticMeshComponent* Door;
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 	// Interactable functions
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact")
@@ -33,17 +36,4 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void Showcase(FText& Tooltip);
 	virtual void Showcase_Implementation(FText& Tooltip) override;
-
-	// Open/close the door
-	void ToggleOpen();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	bool IsOpened = false;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 };

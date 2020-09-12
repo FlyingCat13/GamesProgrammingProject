@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "MainPlayer.h"
 #include "Interactable.generated.h"
 
 // This class does not need to be modified.
@@ -22,6 +23,11 @@ class ASSIGNMENT_API IInteractable
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	// Interact will be fired when the player interacts with the item.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact")
-		void Interact();
+		void Interact(AMainPlayer* InteractingPlayer, FText& Tooltip);
+
+	// Showcase will be fired when the player is within reach of the item and they are looking at it.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void Showcase(FText& Tooltip);
 };

@@ -9,6 +9,7 @@ AInteractableDoor::AInteractableDoor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Set up door frame mesh (also the root component)
 	DoorFrame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorFrame"));
 	RootComponent = DoorFrame;
 	ConstructorHelpers::FObjectFinder<UStaticMesh> DoorFrameMesh(TEXT("/Game/StarterContent/Props/SM_DoorFrame.SM_DoorFrame"));
@@ -17,6 +18,7 @@ AInteractableDoor::AInteractableDoor()
 		DoorFrame->SetStaticMesh(DoorFrameMesh.Object);
 	}
 
+	// Set up the door mesh.
 	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	Door->SetupAttachment(RootComponent);
 	ConstructorHelpers::FObjectFinder<UStaticMesh> DoorMesh(TEXT("/Game/StarterContent/Props/SM_Door.SM_Door"));
@@ -43,7 +45,29 @@ void AInteractableDoor::Tick(float DeltaTime)
 
 }
 
-void AInteractableDoor::Interact_Implementation() {
+// Toggle open upon interaction.
+void AInteractableDoor::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tooltip)
+{
+	Tooltip = FText::GetEmpty();
+	ToggleOpen();
+}
+
+// Show player they can press E to open/close
+void AInteractableDoor::Showcase_Implementation(FText& Tooltip)
+{
+	if (!IsOpened)
+	{
+		Tooltip = FText::FromString("Press E to open");
+	}
+	else
+	{
+		Tooltip = FText::FromString("Press E to close");
+	}
+}
+
+// Spin the door mesh 90 degrees to open/close
+void AInteractableDoor::ToggleOpen()
+{
 	IsOpened = !IsOpened;
 	if (IsOpened)
 	{

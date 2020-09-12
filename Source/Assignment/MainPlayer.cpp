@@ -2,7 +2,9 @@
 
 
 #include "MainPlayer.h"
+#include "Consumable.h"
 #include "Interactable.h"
+#include "Inventoriable.h"
 
 // Sets default values
 AMainPlayer::AMainPlayer()
@@ -20,6 +22,9 @@ AMainPlayer::AMainPlayer()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	// Override post processing settings for the camera effects.
+	FirstPersonCameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
+	FirstPersonCameraComponent->PostProcessSettings.bOverride_SceneColorTint = true;
 }
 
 // Called when the game starts or when spawned
@@ -27,6 +32,10 @@ void AMainPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GameMode = Cast<AAssignmentGameMode>(GetWorld()->GetAuthGameMode());
+	SetDefaultCameraEffect();
+
+	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
 }
 
 // Called every frame
@@ -34,6 +43,65 @@ void AMainPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	CallMyTrace(false);
+
+	GameMode->OnUpdateHealthBar(GetHealthPercentage());
+
+	float OldDebuffCountdown = DebuffCountdown;
+	
+	// Prioritise decressing match timer first before normal timer.
+	if (MatchCountdown > 0.f)
+	{
+		MatchCountdown -= DeltaTime;
+		// If match runs out, switch to normal if debuff countdown is still positive 
+		// or switch to Cursed if otherwise.
+		if (MatchCountdown < 0.f)
+		{
+			if (DebuffCountdown > 0.f)
+			{
+				// Switch back to default camera effect
+				SetDefaultCameraEffect();
+				// DebuffCountdown absorb the negative value of MatchCountdown
+				DebuffCountdown += MatchCountdown;
+			}
+			else
+			{
+				// Switch back to debuff camera effect
+				SetDebuffCameraEffect();
+			}
+		}
+	}
+	else if (DebuffCountdown > 0.f)
+	{
+		DebuffCountdown -= DeltaTime;
+	}
+	
+	// DebuffCountdown < 0.f implies debuff in effect.
+	if (DebuffCountdown < 0.f)
+	{	
+		float DebuffDeltaTime = DeltaTime;
+		// If switching to debuff mode, switch the camera effect and offset the
+		// negative time to calculate health decay value.
+		if (OldDebuffCountdown > 0.f)
+		{
+			SetDebuffCameraEffect();
+			DebuffDeltaTime = -DebuffCountdown;
+			// Give DebuffCountdown a negative value so this if branch will not be triggered
+			// in the future unless DebuffCountdown is set to positive later.
+			DebuffCountdown = -1.f;
+		}
+
+		// Decrease player's health with rate coinciding with delta time.
+		if (MatchCountdown <= 0.f)
+		{
+			Health -= BASE_DEBUFF_DECAY_RATE * DebuffDeltaTime;
+		}
+	}
+
+	if (Health <= 0.f)
+	{
+		GameMode->OnLose();
+	}
 }
 
 // Called to bind functionality to input
@@ -51,11 +119,71 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	// Bind interact event
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainPlayer::Interact);
+
+	// Bind switch inventory event
+	PlayerInputComponent->BindAction("SwitchInventory", IE_Pressed, this, &AMainPlayer::SwitchInventory);
+
+	// Bind pause event
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AMainPlayer::Pause).bExecuteWhenPaused = true;
+}
+
+void AMainPlayer::AddItemToInventory(AActor* ItemToAdd)
+{
+	// Only add if the item is Inventoriable.
+	if (ItemToAdd->GetClass()->ImplementsInterface(UInventoriable::StaticClass())) {
+		Inventory.Add(ItemToAdd);
+	}
+	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
+}
+
+void AMainPlayer::RemoveItemFromInventory(AActor* ItemToRemove)
+{
+	// Remove item and adjust current selected item if needed.
+	Inventory.Remove(ItemToRemove);
+	if (SelectedInventorySlot >= Inventory.Num())
+	{
+		SelectedInventorySlot = -1;
+	}
+	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
+}
+
+AActor* AMainPlayer::GetEquippedItem()
+{	
+	// Get currently equipped item. Return nullptr if not equipping anything.
+	if (SelectedInventorySlot > -1)
+	{
+		return Inventory[SelectedInventorySlot];
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+// Returns inventory as an array of FText.
+TArray<FText> AMainPlayer::InventoryInText()
+{
+	TArray<FText> Result;
+
+	Result.Add(FText::FromString("None"));
+
+	for (auto& Item : Inventory)
+	{
+		Result.Add(FText::FromString(Item->GetName()));
+	}
+
+	return Result;
+}
+
+bool AMainPlayer::IsInInventory(AActor* ItemToCheck)
+{
+	// Find item in inventory.
+	return Inventory.Find(ItemToCheck) != INDEX_NONE;
 }
 
 void AMainPlayer::MoveForward(float Value)
 {
-	if (Value != 0.0f)
+	if (Value != .0f)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
@@ -64,7 +192,7 @@ void AMainPlayer::MoveForward(float Value)
 
 void AMainPlayer::MoveRight(float Value)
 {
-	if (Value != 0.0f)
+	if (Value != .0f)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
@@ -72,19 +200,22 @@ void AMainPlayer::MoveRight(float Value)
 }
 
 void AMainPlayer::Interact()
-{
-	CallMyTrace();
+{	
+	// Interact with items by trace if not holding consumable. Otherwise consume the equipped item.
+	if (SelectedInventorySlot > -1 && Inventory[SelectedInventorySlot]->GetClass()->ImplementsInterface(UConsumable::StaticClass()))
+	{
+		IConsumable::Execute_OnConsume(Inventory[SelectedInventorySlot], this);
+	}
+	else 
+	{
+		CallMyTrace(true);
+	}
 }
 
-//***************************************************************************************************
-//** Trace functions - used to detect items we are looking at in the world
-//***************************************************************************************************
-//***************************************************************************************************
+// The following functions are taken from the example Moodle code with modification to fit the project.
+// Trace functions - used to detect items we are looking at in the world
 
-//***************************************************************************************************
-//** Trace() - called by our CallMyTrace() function which sets up our parameters and passes them through
-//***************************************************************************************************
-
+// Trace() - called by our CallMyTrace() function which sets up our parameters and passes them through
 bool AMainPlayer::Trace(
 	UWorld* World,
 	TArray<AActor*>& ActorsToIgnore,
@@ -117,9 +248,9 @@ bool AMainPlayer::Trace(
 	// When we're debugging it is really useful to see where our trace is in the world
 	// We can use World->DebugDrawTraceTag to tell Unreal to draw debug lines for our trace
 	// (remove these lines to remove the debug - or better create a debug switch!)
-	const FName TraceTag("MyTraceTag");
-	World->DebugDrawTraceTag = TraceTag;
-	TraceParams.TraceTag = TraceTag;
+	//const FName TraceTag("MyTraceTag");
+	//World->DebugDrawTraceTag = TraceTag;
+	//TraceParams.TraceTag = TraceTag;
 
 
 	// Force clear the HitData which contains our results
@@ -139,11 +270,8 @@ bool AMainPlayer::Trace(
 	return (HitOut.GetActor() != NULL);
 }
 
-//***************************************************************************************************
-//** CallMyTrace() - sets up our parameters and then calls our Trace() function
-//***************************************************************************************************
-
-void AMainPlayer::CallMyTrace()
+// CallMyTrace() - sets up our parameters and then calls our Trace() function
+void AMainPlayer::CallMyTrace(bool IsInteracting)
 {
 	// Get the location of the camera (where we are looking from) and the direction we are looking in
 	const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
@@ -151,7 +279,7 @@ void AMainPlayer::CallMyTrace()
 
 	// How for in front of our character do we want our trace to extend?
 	// ForwardVector is a unit vector, so we multiply by the desired distance
-	const FVector End = Start + ForwardVector * 120;
+	const FVector End = Start + ForwardVector * ReachLength;
 
 	// Force clear the HitData which contains our results
 	FHitResult HitData(ForceInit);
@@ -171,7 +299,7 @@ void AMainPlayer::CallMyTrace()
 		{
 
 			UE_LOG(LogClass, Warning, TEXT("This a testing statement. %s"), *HitData.GetActor()->GetName());
-			ProcessTraceHit(HitData);
+			ProcessTraceHit(HitData, IsInteracting);
 
 		}
 		else
@@ -185,24 +313,117 @@ void AMainPlayer::CallMyTrace()
 	{
 		// We did not hit an Actor
 		//ClearPickupInfo();
-
+		GameMode->OnLookAtItemTooltipUpdate(FText::GetEmpty());
 	}
 
 }
 
-//***************************************************************************************************
-//** ProcessTraceHit() - process our Trace Hit result
-//***************************************************************************************************
-
-void AMainPlayer::ProcessTraceHit(FHitResult& HitOut)
+// ProcessTraceHit() - process our Trace Hit result
+void AMainPlayer::ProcessTraceHit(FHitResult& HitOut, bool IsInteracting)
 {
 	if (HitOut.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 	{
-		IInteractable::Execute_Interact(HitOut.GetActor());
+		// Depending on the type of trace (just looking at the item or interacting), trigger the appropriate function
+		// while also updating the appropriate tooltip
+		FText Tooltip;
+		if (IsInteracting)
+		{
+			IInteractable::Execute_Interact(HitOut.GetActor(), this, Tooltip);
+			GameMode->OnInteractedItemTooltipUpdate(Tooltip);
+		}
+		else
+		{
+			IInteractable::Execute_Showcase(HitOut.GetActor(), Tooltip);
+			GameMode->OnLookAtItemTooltipUpdate(Tooltip);
+		}
 	}
 	else
 	{
 		//UE_LOG(LogClass, Warning, TEXT("Actor is NOT Interactable!"));
 		//ClearPickupInfo();
 	}
+}
+
+void AMainPlayer::Heal(float HealAmount)
+{
+	// Heal up to MAX_HEALTH.
+	Health = FMath::Min(MAX_HEALTH, Health + HealAmount);
+}
+
+void AMainPlayer::ResetDebuff()
+{
+	// Reset debuff countdown.
+	DebuffCountdown = BASE_DEBUFF_COUNTDOWN;
+	// Switch to default camera effect if match light is not at play.
+	if (MatchCountdown <= 0.f)
+	{
+		SetDefaultCameraEffect();
+	}
+}
+
+void AMainPlayer::LightMatch(float MatchDuration)
+{
+	// Activate match by setting match duration.
+	MatchCountdown = MatchDuration;
+	// Switch to match light camera effect.
+	SetMatchLightCameraEffect();
+}
+
+float AMainPlayer::GetHealthPercentage()
+{
+	return Health / MAX_HEALTH;
+}
+
+void AMainPlayer::SetReachLength(int NewReachLength)
+{
+	// Set reach length (trace length) to new value.
+	ReachLength = NewReachLength;
+}
+
+void AMainPlayer::ResetReachLength()
+{
+	// Reset reach length to default.
+	ReachLength = BASE_REACH_LENGTH;
+}
+
+void AMainPlayer::SetDefaultCameraEffect()
+{
+	// Dark normal colour.
+	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = -.25f;
+	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, 1.f, 1.f);
+}
+
+void AMainPlayer::SetDebuffCameraEffect()
+{
+	// Slightly brighter but red tint.
+	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = 1.f;
+	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, 0.f, 0.f);
+}
+
+void AMainPlayer::SetMatchLightCameraEffect()
+{
+	// Very bright with warm tint.
+	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = 3.f;
+	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, .6f, 0.f);
+}
+
+void AMainPlayer::SwitchInventory()
+{
+	// Cycle selected slot around -1 to Inventory.Num() - 1 while executing unequip of old item
+	// and equip of new.
+	if (SelectedInventorySlot > -1)
+	{
+		IInventoriable::Execute_OnUnequip(Inventory[SelectedInventorySlot], this);
+	}
+	SelectedInventorySlot = (SelectedInventorySlot + 2) % (Inventory.Num() + 1) - 1;
+	if (SelectedInventorySlot > -1)
+	{
+		IInventoriable::Execute_OnEquip(Inventory[SelectedInventorySlot], this);
+	}
+	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
+}
+
+void AMainPlayer::Pause()
+{
+	GameMode->OnPressPause();
 }
