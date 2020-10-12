@@ -79,7 +79,9 @@ public:
 	// Functions for player class to communicate to game mode.
 	void OnPressPause();
 	void OnWin();
-	void OnLose();
+	// UFUNCTION to allow this to be used with AddDynamic.
+	UFUNCTION()
+		void OnLose();
 	void OnLookAtItemTooltipUpdate(FText Tooltip);
 	void OnInteractedItemTooltipUpdate(FText Tooltip);
 	void OnUpdateInventoryStatus(TArray<FText> InventoryItemNames, int EquippedItem);

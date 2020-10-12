@@ -9,6 +9,9 @@
 #include "GameFramework/Character.h"
 #include "MainPlayer.generated.h"
 
+// Player die event (health drops to 0 or lower).
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDie);
+
 UCLASS()
 class ASSIGNMENT_API AMainPlayer : public ACharacter
 {
@@ -21,6 +24,10 @@ class ASSIGNMENT_API AMainPlayer : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AMainPlayer();
+
+	// Player die event dispatcher
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable)
+		FOnPlayerDie OnPlayerDieEvent;
 
 protected:
 	// Called when the game starts or when spawned

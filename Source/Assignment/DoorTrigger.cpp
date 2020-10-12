@@ -2,6 +2,7 @@
 
 
 #include "DoorTrigger.h"
+#include "LockableDoor.h"
 
 // Sets default values
 ADoorTrigger::ADoorTrigger()
@@ -32,8 +33,9 @@ void ADoorTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer, FText
 {
 	// Output the tooltip to display on HUD
 	Tooltip = FText::FromString("A door has been unlocked");
-	// Unlock the designated door.
-	TargetDoor->Unlock();
+	// Unlock the designated door by broadcasting an event.
+	//TargetDoor->Unlock();
+	OnUnlockDoorEvent.Broadcast();
 }
 
 void ADoorTrigger::Showcase_Implementation(FText& Tooltip)

@@ -23,6 +23,10 @@ void AAssignmentGameMode::BeginPlay()
     SetUpWinScreen();
     SetUpLoseScreen();
 
+    // Subscribe to the player die event to trigger OnLose() function when the player dies.
+    AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+    Player->OnPlayerDieEvent.AddDynamic(this, &AAssignmentGameMode::OnLose);
+
     SwitchToMenuState();
 }
 

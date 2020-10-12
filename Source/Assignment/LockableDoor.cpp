@@ -8,6 +8,17 @@ ALockableDoor::ALockableDoor() : AInteractableDoor()
 
 }
 
+void ALockableDoor::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// If this door is unlockable via a trigger, subscribe to that trigger's unlock event.
+	if (DoorTrigger != nullptr)
+	{
+		DoorTrigger->OnUnlockDoorEvent.AddDynamic(this, &ALockableDoor::Unlock);
+	}
+}
+
 // When the player is equpping the key to the door, it can be unlocked and opened.
 // If locked, the player cannot toggle it.
 // If unlocked, the player can toggle normally.

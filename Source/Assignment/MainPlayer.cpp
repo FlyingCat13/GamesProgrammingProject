@@ -100,7 +100,9 @@ void AMainPlayer::Tick(float DeltaTime)
 
 	if (Health <= 0.f)
 	{
-		GameMode->OnLose();
+		//GameMode->OnLose();
+		// Broadcast the player die event.
+		OnPlayerDieEvent.Broadcast();
 	}
 }
 

@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Interactable.h"
-#include "LockableDoor.h"
 #include "GameFramework/Actor.h"
 #include "DoorTrigger.generated.h"
+
+// Door unlock event.
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnlockDoor);
 
 UCLASS()
 class ASSIGNMENT_API ADoorTrigger : public AActor, public IInteractable
@@ -21,10 +23,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class UStaticMeshComponent* BaseMesh;
 
-	// The door that this trigger will unlock and open. To be set in the editor.
-	UPROPERTY(EditAnywhere)
-		ALockableDoor* TargetDoor;
-
 	// Functions from Interactable interface.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact")
 		void Interact(AMainPlayer* InteractingPlayer, FText& Tooltip);
@@ -33,6 +31,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 		void Showcase(FText& Tooltip);
 	virtual void Showcase_Implementation(FText& Tooltip) override;
+
+	// Door unlock event to broadcast.
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable)
+		FOnUnlockDoor OnUnlockDoorEvent;
 
 protected:
 	// Called when the game starts or when spawned
