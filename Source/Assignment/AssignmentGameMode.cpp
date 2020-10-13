@@ -10,18 +10,19 @@
 AAssignmentGameMode::AAssignmentGameMode()
 {
     DefaultPawnClass = AMainPlayer::StaticClass();
+
+    // Determine the UI classes that will be used.
+    WidgetClass[MenuState] = UMainMenuUI::StaticClass();
+    WidgetClass[PlayState] = UInGameHUD::StaticClass();
+    WidgetClass[PauseState] = UPauseScreen::StaticClass();
+    WidgetClass[LoseState] = ULoseScreen::StaticClass();
+    WidgetClass[WinState] = UWinScreen::StaticClass();
 }
 
 // Set up all the widgets beforehand and start with menu state.
 void AAssignmentGameMode::BeginPlay()
 {
     Super::BeginPlay();
-
-    SetUpMainMenu();
-    SetUpInGameHUD();
-    SetUpPauseScreen();
-    SetUpWinScreen();
-    SetUpLoseScreen();
 
     // Subscribe to the player die event to trigger OnLose() function when the player dies.
     AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
@@ -33,91 +34,118 @@ void AAssignmentGameMode::BeginPlay()
 // Update the time that the tooltip for interacted item. If duration expires, update the HUD.
 void AAssignmentGameMode::Tick(float DeltaTime)
 {
+    // Update the ingame HUD if currently in play state.
+    if (CurrentState == PlayState)
+    {
+        UInGameHUD* InGameHUD = Cast<UInGameHUD>(CurrentWidget);
+        AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+        UpdateTooltips(InGameHUD, DeltaTime);
+        UpdateHealthBar(InGameHUD, Player);
+        UpdateInventoryStatus(InGameHUD, Player);
+    }
+}
+
+// Update the tooltips on screen.
+void AAssignmentGameMode::UpdateTooltips(UInGameHUD* InGameHUD, float DeltaTime)
+{
     if (InteractedItemTooltipDuration > 0.f)
     {
         InteractedItemTooltipDuration -= DeltaTime;
         if (InteractedItemTooltipDuration <= 0.f)
         {
-            // Update the HUD
-            UInGameHUD* InGameHUD = Cast<UInGameHUD>(Widgets[PlayState]);
-            InGameHUD->InteractedItemTooltipTextBlock->SetText(FText::GetEmpty());
+            // Update the tooltip
+            InteractedItemTooltip = FText::GetEmpty();
         }
     }
+
+    InGameHUD->InteractedItemTooltipTextBlock->SetText(InteractedItemTooltip);
+    InGameHUD->LookAtItemTooltipTextBlock->SetText(LookAtItemTooltip);
 }
 
-// Set up the main menu UI.
-void AAssignmentGameMode::SetUpMainMenu()
+// Update the healthbar percentage.
+void AAssignmentGameMode::UpdateHealthBar(UInGameHUD* InGameHUD, AMainPlayer* Player)
 {
-    // Create the widget and add to the widget array.
-    Widgets[MenuState] = CreateWidget<UUserWidget>(GetWorld(), UMainMenuUI::StaticClass());
-    UMainMenuUI* MainMenu = Cast<UMainMenuUI>(Widgets[MenuState]);
-    // Assign callbacks to start button (switch to play state) and quit button (quit the game).
-    if (!MainMenu->StartButton->OnClicked.IsBound())
-    {
-        MainMenu->StartButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::SwitchToPlayState);
-    }
-    if (!MainMenu->QuitButton->OnClicked.IsBound())
-    {
-        MainMenu->QuitButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::OnQuit);
-    }
+    InGameHUD->HealthBar->SetPercent(Player->GetHealthPercentage());
 }
 
-// Set up the in game HUD.
-void AAssignmentGameMode::SetUpInGameHUD()
+// Update the player's inventory status.
+void AAssignmentGameMode::UpdateInventoryStatus(UInGameHUD* InGameHUD, AMainPlayer* Player)
 {
-    // Create the widget and add to the widget array.
-    Widgets[PlayState] = CreateWidget<UUserWidget>(GetWorld(), UInGameHUD::StaticClass());
-}
-
-// Set up the pause screen
-void AAssignmentGameMode::SetUpPauseScreen()
-{
-    // Create the widget and add to the widget array.
-    Widgets[PauseState] = CreateWidget<UUserWidget>(GetWorld(), UPauseScreen::StaticClass());
-}
-
-// Set up the win screen
-void AAssignmentGameMode::SetUpWinScreen()
-{
-    // Create the widget and add to the widget array.
-    Widgets[WinState] = CreateWidget<UUserWidget>(GetWorld(), UWinScreen::StaticClass());
-    // Assign callbacks to restart button (restart the game mode) and quit button (quit the game).
-    UWinScreen* WinScreen = Cast<UWinScreen>(Widgets[WinState]);
-    if (!WinScreen->RestartButton->OnClicked.IsBound())
-    {
-        WinScreen->RestartButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::RestartGame);
-    }
-    if (!WinScreen->QuitButton->OnClicked.IsBound())
-    {
-        WinScreen->QuitButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::OnQuit);
-    }
-}
-
-// Set up the lose screen
-void AAssignmentGameMode::SetUpLoseScreen()
-{
-    // Create the widget and add to the widget array.
-    Widgets[LoseState] = CreateWidget<UUserWidget>(GetWorld(), ULoseScreen::StaticClass());
-    // Assign callbacks to restart button (restart the game mode) and quit button (quit the game).
-    ULoseScreen* LoseScreen = Cast<ULoseScreen>(Widgets[LoseState]);
-    if (!LoseScreen->RestartButton->OnClicked.IsBound())
-    {
-        LoseScreen->RestartButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::RestartGame);
-    }
-    if (!LoseScreen->QuitButton->OnClicked.IsBound())
-    {
-        LoseScreen->QuitButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::OnQuit);
-    }
+    InGameHUD->UpdateInventoryInformation(Player->InventoryInText(), Player->GetSelectedInventorySlot());
 }
 
 // Change the on screen widget
-void AAssignmentGameMode::ChangeOnScreenWidget(GameState OldState, GameState NewState)
-{
+void AAssignmentGameMode::ChangeOnScreenWidget(GameState NewState)
+{   
+    // Switch state
+    CurrentState = NewState;
+
     // Remove old state widget from viewport and add new state widget instead.
-    Widgets[OldState]->RemoveFromViewport();
-    if (Widgets[NewState])
+    if (CurrentWidget != nullptr)
     {
-        Widgets[NewState]->AddToViewport(9999);
+        CurrentWidget->RemoveFromViewport();
+    }
+    CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), WidgetClass[NewState]);
+    CurrentWidget->AddToViewport(9999);
+
+    // Attach callbacks to buttons on applicable widgets.
+    SetupCurrentWidget();
+}
+
+// Initial binding for widget's buttons when it is created.
+void AAssignmentGameMode::SetupCurrentWidget()
+{
+    switch (CurrentState)
+    {
+        case MenuState:
+        {
+            UMainMenuUI* MainMenu = Cast<UMainMenuUI>(CurrentWidget);
+            // Assign callbacks to start button (switch to play state) and quit button (quit the game).
+            if (!MainMenu->StartButton->OnClicked.IsBound())
+            {
+                MainMenu->StartButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::SwitchToPlayState);
+            }
+            if (!MainMenu->QuitButton->OnClicked.IsBound())
+            {
+                MainMenu->QuitButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::OnQuit);
+            }
+            
+            break;
+        }
+        case WinState:
+        {
+            UWinScreen* WinScreen = Cast<UWinScreen>(CurrentWidget);
+            // Assign callbacks to restart button (restart the game mode) and quit button (quit the game).
+            if (!WinScreen->RestartButton->OnClicked.IsBound())
+            {
+                WinScreen->RestartButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::RestartGame);
+            }
+            if (!WinScreen->QuitButton->OnClicked.IsBound())
+            {
+                WinScreen->QuitButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::OnQuit);
+            }
+
+            break;
+        }
+        case LoseState:
+        {
+            ULoseScreen* LoseScreen = Cast<ULoseScreen>(CurrentWidget);
+            // Assign callbacks to restart button (restart the game mode) and quit button (quit the game).
+            if (!LoseScreen->RestartButton->OnClicked.IsBound())
+            {
+                LoseScreen->RestartButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::RestartGame);
+            }
+            if (!LoseScreen->QuitButton->OnClicked.IsBound())
+            {
+                LoseScreen->QuitButton->OnClicked.AddDynamic(this, &AAssignmentGameMode::OnQuit);
+            }
+
+            break;
+        }
+        default:
+        {
+            break;
+        }
     }
 }
 
@@ -161,30 +189,14 @@ void AAssignmentGameMode::OnQuit()
 // Update the look at item HUD tooltip with the input tooltip.
 void AAssignmentGameMode::OnLookAtItemTooltipUpdate(FText Tooltip)
 {
-    UInGameHUD* InGameHUD = Cast<UInGameHUD>(Widgets[PlayState]);
-    InGameHUD->LookAtItemTooltipTextBlock->SetText(Tooltip);
+    LookAtItemTooltip = Tooltip;
 }
 
 // Update the interacted item HUD tooltip with the input tooltip.
 void AAssignmentGameMode::OnInteractedItemTooltipUpdate(FText Tooltip)
 {
-    UInGameHUD* InGameHUD = Cast<UInGameHUD>(Widgets[PlayState]);
-    InGameHUD->InteractedItemTooltipTextBlock->SetText(Tooltip);
+    InteractedItemTooltip = Tooltip;
     InteractedItemTooltipDuration = 3.f;
-}
-
-// Update the inventory tooltip with the input array of inventory in text form and the currently equipped item.
-void AAssignmentGameMode::OnUpdateInventoryStatus(TArray<FText> InventoryItemNames, int EquippedItem)
-{
-    UInGameHUD* InGameHUD = Cast<UInGameHUD>(Widgets[PlayState]);
-    InGameHUD->UpdateInventoryInformation(InventoryItemNames, EquippedItem);
-}
-
-// Update the health bar by setting the health bar on the HUD to the input percentage.
-void AAssignmentGameMode::OnUpdateHealthBar(float Percentage)
-{
-    UInGameHUD* InGameHUD = Cast<UInGameHUD>(Widgets[PlayState]);
-    InGameHUD->HealthBar->SetPercent(Percentage);
 }
 
 // Switch to menu state 
@@ -192,9 +204,7 @@ void AAssignmentGameMode::SwitchToMenuState()
 {
     UE_LOG(LogClass, Warning, TEXT("Menu"));
     // Switch widget
-    ChangeOnScreenWidget(CurrentState, MenuState);
-    // Switch state
-    CurrentState = MenuState;
+    ChangeOnScreenWidget(MenuState);
     UGameplayStatics::SetGamePaused(GetWorld(), true);
 
     // Allow for mouse control in menu.
@@ -212,9 +222,7 @@ void AAssignmentGameMode::SwitchToPlayState()
 {
     UE_LOG(LogClass, Warning, TEXT("Play"));
     // Switch widget
-    ChangeOnScreenWidget(CurrentState, PlayState);
-    // Switch state
-    CurrentState = PlayState;
+    ChangeOnScreenWidget(PlayState);
     UGameplayStatics::SetGamePaused(GetWorld(), false);
 
     // Disable mouse cursor.
@@ -231,9 +239,7 @@ void AAssignmentGameMode::SwitchToPauseState()
 {
     UE_LOG(LogClass, Warning, TEXT("Pause"));
     // Switch widget
-    ChangeOnScreenWidget(CurrentState, PauseState);
-    // Switch state
-    CurrentState = PauseState;
+    ChangeOnScreenWidget(PauseState);
     UGameplayStatics::SetGamePaused(GetWorld(), true);
 }
 
@@ -241,9 +247,7 @@ void AAssignmentGameMode::SwitchToWinState()
 {
     UE_LOG(LogClass, Warning, TEXT("Win"));
     // Switch widget
-    ChangeOnScreenWidget(CurrentState, WinState);
-    // Switch state
-    CurrentState = WinState;
+    ChangeOnScreenWidget(WinState);
     UGameplayStatics::SetGamePaused(GetWorld(), true);
 
     // Allow cursor control in win screen
@@ -260,9 +264,7 @@ void AAssignmentGameMode::SwitchToLoseState()
 {
     UE_LOG(LogClass, Warning, TEXT("Lose"));
     // Switch widget
-    ChangeOnScreenWidget(CurrentState, LoseState);
-    // Switch state
-    CurrentState = LoseState;
+    ChangeOnScreenWidget(LoseState);
     UGameplayStatics::SetGamePaused(GetWorld(), true);
 
     // Allow cursor control in lose screen

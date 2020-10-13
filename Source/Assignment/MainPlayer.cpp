@@ -34,8 +34,6 @@ void AMainPlayer::BeginPlay()
 	
 	GameMode = Cast<AAssignmentGameMode>(GetWorld()->GetAuthGameMode());
 	SetDefaultCameraEffect();
-
-	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
 }
 
 // Called every frame
@@ -45,10 +43,7 @@ void AMainPlayer::Tick(float DeltaTime)
 
 	CallMyTrace(false);
 
-	GameMode->OnUpdateHealthBar(GetHealthPercentage());
-
 	float OldDebuffCountdown = DebuffCountdown;
-	
 	// Prioritise decressing match timer first before normal timer.
 	if (MatchCountdown > 0.f)
 	{
@@ -135,7 +130,6 @@ void AMainPlayer::AddItemToInventory(AActor* ItemToAdd)
 	if (ItemToAdd->GetClass()->ImplementsInterface(UInventoriable::StaticClass())) {
 		Inventory.Add(ItemToAdd);
 	}
-	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
 }
 
 void AMainPlayer::RemoveItemFromInventory(AActor* ItemToRemove)
@@ -146,7 +140,6 @@ void AMainPlayer::RemoveItemFromInventory(AActor* ItemToRemove)
 	{
 		SelectedInventorySlot = -1;
 	}
-	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
 }
 
 AActor* AMainPlayer::GetEquippedItem()
@@ -160,6 +153,12 @@ AActor* AMainPlayer::GetEquippedItem()
 	{
 		return nullptr;
 	}
+}
+
+// Get the index of the equipped item (holding no item will return 0, hence the +1).
+int AMainPlayer::GetSelectedInventorySlot()
+{
+	return SelectedInventorySlot + 1;
 }
 
 // Returns inventory as an array of FText.
@@ -422,7 +421,6 @@ void AMainPlayer::SwitchInventory()
 	{
 		IInventoriable::Execute_OnEquip(Inventory[SelectedInventorySlot], this);
 	}
-	GameMode->OnUpdateInventoryStatus(InventoryInText(), SelectedInventorySlot + 1);
 }
 
 void AMainPlayer::Pause()

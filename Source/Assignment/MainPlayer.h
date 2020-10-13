@@ -45,6 +45,8 @@ public:
 	void RemoveItemFromInventory(AActor* ItemToRemove);
 	AActor* GetEquippedItem();
 	bool IsInInventory(AActor* ItemToCheck);
+	TArray<FText> InventoryInText();
+	int GetSelectedInventorySlot();
 
 	// Health and debuff related functions
 	void Heal(float HealAmount);
@@ -92,7 +94,6 @@ protected:
 
 	// Handles cycling through inventory
 	void SwitchInventory();
-	TArray<FText> InventoryInText();
 
 	// Handles pausing the game
 	void Pause();

@@ -12,6 +12,9 @@
 #include "WinScreen.h"
 #include "AssignmentGameMode.generated.h"
 
+// Predeclare AMainPlayer
+class AMainPlayer;
+
 /**
  * 
  */
@@ -40,8 +43,10 @@ protected:
 	// Current game state
 	GameState CurrentState;
 
-	// Different widgets for different UI elements based on game state.
-	UUserWidget* Widgets[5];
+	// The current widget on screen.
+	UUserWidget* CurrentWidget;
+	// The Widget classes that would be used.
+	TSubclassOf<UUserWidget> WidgetClass[5];
 
 	// Tooltip for the interactable item that the player is looking at.
 	FText LookAtItemTooltip;
@@ -51,14 +56,14 @@ protected:
 	float InteractedItemTooltipDuration = 0.f;
 
 	// Change on screen overlay based on the state that is being changed to.
-	void ChangeOnScreenWidget(GameState OldState, GameState NewState);
+	void ChangeOnScreenWidget(GameState NewState);
+	// UI Widget setup.
+	void SetupCurrentWidget();
 
-	// Functions for setting up UI elements
-	void SetUpMainMenu();
-	void SetUpInGameHUD();
-	void SetUpPauseScreen();
-	void SetUpWinScreen();
-	void SetUpLoseScreen();
+	// HUD update functions
+	void UpdateTooltips(UInGameHUD* InGameHUD, float DeltaTime);
+	void UpdateHealthBar(UInGameHUD* InGameHUD, AMainPlayer* Player);
+	void UpdateInventoryStatus(UInGameHUD* InGameHUD, AMainPlayer* Player);
 
 	// Functions to switch states.
 	void SwitchToMenuState();
@@ -84,6 +89,4 @@ public:
 		void OnLose();
 	void OnLookAtItemTooltipUpdate(FText Tooltip);
 	void OnInteractedItemTooltipUpdate(FText Tooltip);
-	void OnUpdateInventoryStatus(TArray<FText> InventoryItemNames, int EquippedItem);
-	void OnUpdateHealthBar(float Percentage);
 };
