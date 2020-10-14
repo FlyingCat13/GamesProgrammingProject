@@ -43,6 +43,9 @@ protected:
 
 	bool IsOpened = false;
 
+	UMaterialInstanceDynamic* DoorFrameMaterialInstance;
+	UMaterialInstanceDynamic* DoorMaterialInstance;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

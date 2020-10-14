@@ -30,6 +30,8 @@ protected:
 	// Amount of heal.
 	const float HEAL_AMOUNT = 50.f;
 
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

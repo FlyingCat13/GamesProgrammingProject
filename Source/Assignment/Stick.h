@@ -27,6 +27,8 @@ protected:
 	
 	const int REACH_LENGTH = 500;
 
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

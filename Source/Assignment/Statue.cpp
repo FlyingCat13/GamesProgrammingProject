@@ -25,6 +25,8 @@ void AStatue::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UMaterialInterface* Material = StatueMesh->GetMaterial(0);
+	DynamicMaterialInstance = StatueMesh->CreateDynamicMaterialInstance(0, Material);
 }
 
 // Called every frame
@@ -32,6 +34,11 @@ void AStatue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (DynamicMaterialInstance != nullptr)
+	{
+		float Glow = 1.f + FMath::Cos(GetWorld()->TimeSeconds * 2);
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("Emissive"), Glow);
+	}
 }
 
 // Add to inventory when interacted with.

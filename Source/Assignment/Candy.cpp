@@ -15,18 +15,12 @@ ACandy::ACandy()
 	CandyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CandyMesh"));
 	RootComponent = CandyMesh;
 
-	// Find sphere mesh with metal gold material.
+	// Find sphere mesh.
 	ConstructorHelpers::FObjectFinder<UStaticMesh> CandyMeshAsset(TEXT("/Game/StarterContent/Shapes/Shape_Sphere.Shape_Sphere"));
 	if (CandyMeshAsset.Succeeded())
 	{
 		CandyMesh->SetStaticMesh(CandyMeshAsset.Object);
 		CandyMesh->SetWorldScale3D(FVector(0.25f));
-	}
-	
-	ConstructorHelpers::FObjectFinder<UMaterial> CandyMaterial(TEXT("/Game/StarterContent/Materials/M_Metal_Gold.M_Metal_Gold"));
-	if (CandyMaterial.Succeeded())
-	{
-		CandyMesh->SetMaterial(0, CandyMaterial.Object);
 	}
 }
 
@@ -34,7 +28,14 @@ ACandy::ACandy()
 void ACandy::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	UMaterialInterface* Material = CandyMesh->GetMaterial(0);
+	DynamicMaterialInstance = CandyMesh->CreateDynamicMaterialInstance(0, Material);
+	if (DynamicMaterialInstance != nullptr)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor(.2f, .1f, .6f));
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor(1.f, .1f, .3f));
+	}
 }
 
 // Called every frame
@@ -42,6 +43,11 @@ void ACandy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (DynamicMaterialInstance != nullptr)
+	{
+		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("Blend"), Blend);
+	}
 }
 
 // Called when player interacts with it.

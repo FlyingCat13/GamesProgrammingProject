@@ -28,6 +28,8 @@ protected:
 
 	const float MATCH_DURATION = 5.f;
 
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

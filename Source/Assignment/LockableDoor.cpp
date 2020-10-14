@@ -12,6 +12,15 @@ void ALockableDoor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (DoorFrameMaterialInstance && DoorMaterialInstance)
+	{
+		DoorFrameMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Red);
+		DoorFrameMaterialInstance->SetScalarParameterValue("Emissive Value", 3.f);
+
+		DoorMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Red);
+		DoorMaterialInstance->SetScalarParameterValue("Emissive Value", 3.f);
+	}
+
 	// If this door is unlockable via a trigger, subscribe to that trigger's unlock event.
 	if (DoorTrigger != nullptr)
 	{
@@ -49,6 +58,14 @@ void ALockableDoor::Unlock()
 {
 	if (IsLocked)
 	{
+		if (DoorFrameMaterialInstance && DoorMaterialInstance)
+		{
+			DoorFrameMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);
+			DoorFrameMaterialInstance->SetScalarParameterValue("Emissive Value", 3.f);
+
+			DoorMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);
+			DoorMaterialInstance->SetScalarParameterValue("Emissive Value", 3.f);
+		}
 		IsLocked = false;
 		AInteractableDoor::ToggleOpen();
 	}

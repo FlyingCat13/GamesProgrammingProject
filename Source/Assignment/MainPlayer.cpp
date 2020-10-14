@@ -398,7 +398,7 @@ void AMainPlayer::SetDebuffCameraEffect()
 {
 	// Slightly brighter but red tint.
 	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = 1.f;
-	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, 0.f, 0.f);
+	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, .4f, .4f, .5f);
 }
 
 void AMainPlayer::SetMatchLightCameraEffect()

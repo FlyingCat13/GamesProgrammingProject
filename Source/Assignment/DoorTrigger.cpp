@@ -20,6 +20,12 @@ void ADoorTrigger::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UMaterialInterface* Material = BaseMesh->GetMaterial(0);
+	DynamicMaterialInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
+	if (DynamicMaterialInstance != nullptr)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Red);
+	}
 }
 
 // Called every frame
@@ -36,6 +42,10 @@ void ADoorTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer, FText
 	// Unlock the designated door by broadcasting an event.
 	//TargetDoor->Unlock();
 	OnUnlockDoorEvent.Broadcast();
+	if (DynamicMaterialInstance != nullptr)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Green);
+	}
 }
 
 void ADoorTrigger::Showcase_Implementation(FText& Tooltip)

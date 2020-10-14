@@ -17,12 +17,6 @@ AStick::AStick()
 		StickMesh->SetStaticMesh(StickMeshAsset.Object);
 		StickMesh->SetWorldScale3D(FVector(.25f, 2.5f, .25f));
 	}
-
-	ConstructorHelpers::FObjectFinder<UMaterial> MatchMaterial(TEXT("/Game/StarterContent/Materials/M_Wood_Oak.M_Wood_Oak"));
-	if (MatchMaterial.Succeeded())
-	{
-		StickMesh->SetMaterial(0, MatchMaterial.Object);
-	}
 }
 
 // Called when the game starts or when spawned
@@ -30,6 +24,13 @@ void AStick::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UMaterialInterface* Material = StickMesh->GetMaterial(0);
+	DynamicMaterialInstance = StickMesh->CreateDynamicMaterialInstance(0, Material);
+	if (DynamicMaterialInstance != nullptr)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor(.1f, .06f, 0.f));
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor(.4f, .4f, .4f));
+	}
 }
 
 // Called every frame
@@ -37,6 +38,11 @@ void AStick::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (DynamicMaterialInstance != nullptr)
+	{
+		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("Blend"), Blend);
+	}
 }
 
 // Add to inventory when interacted.
@@ -45,6 +51,7 @@ void AStick::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tool
 	Tooltip = FText::GetEmpty();
 	InteractingPlayer->AddItemToInventory(this);
 	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
 
 // Description for the player when looked at.

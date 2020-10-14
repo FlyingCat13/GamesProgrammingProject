@@ -18,12 +18,6 @@ ADoorKey::ADoorKey()
 		KeyMesh->SetStaticMesh(KeyMeshAsset.Object);
 		KeyMesh->SetWorldScale3D(FVector(0.25f));
 	}
-
-	ConstructorHelpers::FObjectFinder<UMaterial> MatchMaterial(TEXT("/Game/StarterContent/Materials/M_Metal_Rust.M_Metal_Rust"));
-	if (MatchMaterial.Succeeded())
-	{
-		KeyMesh->SetMaterial(0, MatchMaterial.Object);
-	}
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +25,13 @@ void ADoorKey::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UMaterialInterface* Material = KeyMesh->GetMaterial(0);
+	DynamicMaterialInstance = KeyMesh->CreateDynamicMaterialInstance(0, Material);
+	if (DynamicMaterialInstance != nullptr)
+	{
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor(.15f, .85f, 0.9f));
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor(0.f, .6f, .2f));
+	}
 }
 
 // Called every frame
@@ -38,6 +39,11 @@ void ADoorKey::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (DynamicMaterialInstance != nullptr)
+	{
+		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("Blend"), Blend);
+	}
 }
 
 void ADoorKey::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tooltip)
@@ -48,6 +54,7 @@ void ADoorKey::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& To
 	InteractingPlayer->AddItemToInventory(this);
 	// Hide from world
 	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
 
 void ADoorKey::Showcase_Implementation(FText& Tooltip)

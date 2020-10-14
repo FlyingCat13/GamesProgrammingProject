@@ -36,6 +36,19 @@ void AInteractableDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UMaterialInterface* DoorFrameMaterial = DoorFrame->GetMaterial(0);
+	DoorFrameMaterialInstance = DoorFrame->CreateDynamicMaterialInstance(0, DoorFrameMaterial);
+	UMaterialInterface* DoorMaterial = Door->GetMaterial(0);
+	DoorMaterialInstance = Door->CreateDynamicMaterialInstance(0, DoorMaterial);
+
+	if (DoorFrameMaterialInstance && DoorMaterialInstance)
+	{
+		DoorFrameMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);
+		DoorFrameMaterialInstance->SetScalarParameterValue("Emissive Value", 3.f);
+
+		DoorMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);
+		DoorMaterialInstance->SetScalarParameterValue("Emissive Value", 3.f);
+	}
 }
 
 // Called every frame
