@@ -9,7 +9,7 @@ ADoorKey::ADoorKey()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Set the key mesh to be a quad pyramid with rust material
+	// Set the key mesh to be a quad pyramid
 	KeyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("KeyMesh"));
 	RootComponent = KeyMesh;
 	ConstructorHelpers::FObjectFinder<UStaticMesh> KeyMeshAsset(TEXT("/Game/StarterContent/Shapes/Shape_QuadPyramid.Shape_QuadPyramid"));
@@ -18,6 +18,13 @@ ADoorKey::ADoorKey()
 		KeyMesh->SetStaticMesh(KeyMeshAsset.Object);
 		KeyMesh->SetWorldScale3D(FVector(0.25f));
 	}
+
+	// Set custom material for later dynamic use
+	ConstructorHelpers::FObjectFinder<UMaterial> KeyMaterial(TEXT("/Game/StarterContent/Materials/ItemMaterial.ItemMaterial"));
+	if (KeyMaterial.Succeeded())
+	{
+		KeyMesh->SetMaterial(0, KeyMaterial.Object);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -25,6 +32,7 @@ void ADoorKey::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Set up dynamic material instance.
 	UMaterialInterface* Material = KeyMesh->GetMaterial(0);
 	DynamicMaterialInstance = KeyMesh->CreateDynamicMaterialInstance(0, Material);
 	if (DynamicMaterialInstance != nullptr)
@@ -39,6 +47,7 @@ void ADoorKey::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Change between two colours by lerping.
 	if (DynamicMaterialInstance != nullptr)
 	{
 		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;

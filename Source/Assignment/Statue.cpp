@@ -18,6 +18,13 @@ AStatue::AStatue()
 		StatueMesh->SetStaticMesh(StatueMeshAsset.Object);
 	}
 	StatueMesh->SetWorldScale3D(FVector(.25f));
+
+	// Set custom material for later dynamic use
+	ConstructorHelpers::FObjectFinder<UMaterial> StatueMaterial(TEXT("/Game/StarterContent/Materials/ItemMaterial.ItemMaterial"));
+	if (StatueMaterial.Succeeded())
+	{
+		StatueMesh->SetMaterial(0, StatueMaterial.Object);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -25,6 +32,7 @@ void AStatue::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Set up dynamic material instance.
 	UMaterialInterface* Material = StatueMesh->GetMaterial(0);
 	DynamicMaterialInstance = StatueMesh->CreateDynamicMaterialInstance(0, Material);
 }
@@ -34,6 +42,7 @@ void AStatue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Animate glowing effect.
 	if (DynamicMaterialInstance != nullptr)
 	{
 		float Glow = 1.f + FMath::Cos(GetWorld()->TimeSeconds * 2);
@@ -47,6 +56,7 @@ void AStatue::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Too
 	Tooltip = FText::FromString("You got the relic! Now go back to your room before you go insane!");
 	InteractingPlayer->AddItemToInventory(this);
 	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
 
 // Description to the player

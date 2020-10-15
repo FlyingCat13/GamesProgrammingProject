@@ -30,6 +30,7 @@ bool UInGameHUD::Initialize()
 	UCanvasPanelSlot* LookAtItemTooltipSlot = Panel->AddChildToCanvas(LookAtItemTooltipTextBlock);
 	LookAtItemTooltipSlot->SetAnchors(FAnchors(0.5f));
 	LookAtItemTooltipSlot->SetPosition(FVector2D(0.f, 100.f));
+	LookAtItemTooltipSlot->SetAlignment(FVector2D(0.5f, 0.5f));
 	LookAtItemTooltipSlot->bAutoSize = true;
 
 	// Create the interacted item widget
@@ -38,6 +39,7 @@ bool UInGameHUD::Initialize()
 	UCanvasPanelSlot* InteractedItemTooltipSlot = Panel->AddChildToCanvas(InteractedItemTooltipTextBlock);
 	InteractedItemTooltipSlot->SetAnchors(FAnchors(0.5f));
 	InteractedItemTooltipSlot->SetPosition(FVector2D(0.f, 200.f));
+	InteractedItemTooltipSlot->SetAlignment(FVector2D(0.5f, 0.5f));
 	InteractedItemTooltipSlot->bAutoSize = true;
 
 	// Create an array of text block to display inventory items

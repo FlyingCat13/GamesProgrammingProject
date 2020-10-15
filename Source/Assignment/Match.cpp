@@ -18,6 +18,13 @@ AMatch::AMatch()
 		MatchMesh->SetStaticMesh(MatchMeshAsset.Object);
 		MatchMesh->SetWorldScale3D(FVector(0.25f));
 	}
+
+	// Set custom material for later dynamic use
+	ConstructorHelpers::FObjectFinder<UMaterial> MatchMaterial(TEXT("/Game/StarterContent/Materials/ItemMaterial.ItemMaterial"));
+	if (MatchMaterial.Succeeded())
+	{
+		MatchMesh->SetMaterial(0, MatchMaterial.Object);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -25,6 +32,7 @@ void AMatch::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Set up dynamic material instance.
 	UMaterialInterface* Material = MatchMesh->GetMaterial(0);
 	DynamicMaterialInstance = MatchMesh->CreateDynamicMaterialInstance(0, Material);
 	if (DynamicMaterialInstance != nullptr)
@@ -39,6 +47,7 @@ void AMatch::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Change between two colours by lerping.
 	if (DynamicMaterialInstance != nullptr)
 	{
 		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;

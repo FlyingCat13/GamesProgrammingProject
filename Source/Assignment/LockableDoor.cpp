@@ -12,6 +12,7 @@ void ALockableDoor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// By default, locked door glows red.
 	if (DoorFrameMaterialInstance && DoorMaterialInstance)
 	{
 		DoorFrameMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Red);
@@ -58,6 +59,7 @@ void ALockableDoor::Unlock()
 {
 	if (IsLocked)
 	{
+		// The door glows green when unlocked.
 		if (DoorFrameMaterialInstance && DoorMaterialInstance)
 		{
 			DoorFrameMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);

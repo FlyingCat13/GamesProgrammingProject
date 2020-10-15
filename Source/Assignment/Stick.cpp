@@ -17,6 +17,13 @@ AStick::AStick()
 		StickMesh->SetStaticMesh(StickMeshAsset.Object);
 		StickMesh->SetWorldScale3D(FVector(.25f, 2.5f, .25f));
 	}
+
+	// Set custom material for later dynamic use
+	ConstructorHelpers::FObjectFinder<UMaterial> StickMaterial(TEXT("/Game/StarterContent/Materials/ItemMaterial.ItemMaterial"));
+	if (StickMaterial.Succeeded())
+	{
+		StickMesh->SetMaterial(0, StickMaterial.Object);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -24,6 +31,7 @@ void AStick::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Set up dynamic material instance.
 	UMaterialInterface* Material = StickMesh->GetMaterial(0);
 	DynamicMaterialInstance = StickMesh->CreateDynamicMaterialInstance(0, Material);
 	if (DynamicMaterialInstance != nullptr)
@@ -38,6 +46,7 @@ void AStick::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// // Change between two colours by lerping.
 	if (DynamicMaterialInstance != nullptr)
 	{
 		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;

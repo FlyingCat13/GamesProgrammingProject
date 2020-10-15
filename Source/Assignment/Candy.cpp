@@ -22,6 +22,13 @@ ACandy::ACandy()
 		CandyMesh->SetStaticMesh(CandyMeshAsset.Object);
 		CandyMesh->SetWorldScale3D(FVector(0.25f));
 	}
+
+	// Set custom material for later dynamic use
+	ConstructorHelpers::FObjectFinder<UMaterial> CandyMaterial(TEXT("/Game/StarterContent/Materials/ItemMaterial.ItemMaterial"));
+	if (CandyMaterial.Succeeded())
+	{
+		CandyMesh->SetMaterial(0, CandyMaterial.Object);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -29,6 +36,7 @@ void ACandy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Set up dynamic material instance.
 	UMaterialInterface* Material = CandyMesh->GetMaterial(0);
 	DynamicMaterialInstance = CandyMesh->CreateDynamicMaterialInstance(0, Material);
 	if (DynamicMaterialInstance != nullptr)
@@ -43,6 +51,7 @@ void ACandy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Change between two colours by lerping.
 	if (DynamicMaterialInstance != nullptr)
 	{
 		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;

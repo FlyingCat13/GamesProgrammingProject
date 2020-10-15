@@ -13,6 +13,13 @@ ADoorTrigger::ADoorTrigger()
 	// Set only an empty mesh as the root component to allow for future customisability
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
 	RootComponent = BaseMesh;
+
+	// Set custom material for later dynamic use
+	ConstructorHelpers::FObjectFinder<UMaterial> BaseMaterial(TEXT("/Game/StarterContent/Materials/ItemMaterial.ItemMaterial"));
+	if (BaseMaterial.Succeeded())
+	{
+		BaseMesh->SetMaterial(0, BaseMaterial.Object);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -20,6 +27,7 @@ void ADoorTrigger::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Set up dynamic material instance.
 	UMaterialInterface* Material = BaseMesh->GetMaterial(0);
 	DynamicMaterialInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
 	if (DynamicMaterialInstance != nullptr)
@@ -42,6 +50,7 @@ void ADoorTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer, FText
 	// Unlock the designated door by broadcasting an event.
 	//TargetDoor->Unlock();
 	OnUnlockDoorEvent.Broadcast();
+	// Change colours when triggered.
 	if (DynamicMaterialInstance != nullptr)
 	{
 		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Green);
