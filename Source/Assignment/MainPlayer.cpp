@@ -25,6 +25,10 @@ AMainPlayer::AMainPlayer()
 	// Override post processing settings for the camera effects.
 	FirstPersonCameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
 	FirstPersonCameraComponent->PostProcessSettings.bOverride_SceneColorTint = true;
+
+	bCanAffectNavigationGeneration = false;
+
+	GetMesh()->BodyInstance.SetCollisionProfileName("Player");
 }
 
 // Called when the game starts or when spawned
@@ -89,7 +93,7 @@ void AMainPlayer::Tick(float DeltaTime)
 		// Decrease player's health with rate coinciding with delta time.
 		if (MatchCountdown <= 0.f)
 		{
-			Health -= BASE_DEBUFF_DECAY_RATE * DebuffDeltaTime;
+			Health -= DecayRate * DebuffDeltaTime;
 		}
 	}
 
@@ -426,4 +430,19 @@ void AMainPlayer::SwitchInventory()
 void AMainPlayer::Pause()
 {
 	GameMode->OnPressPause();
+}
+
+void AMainPlayer::SetDecayRate(float NewDecayRate)
+{
+	DecayRate = NewDecayRate;
+}
+
+void AMainPlayer::ResetDecayRate()
+{
+	DecayRate = BASE_DEBUFF_DECAY_RATE;
+}
+
+bool AMainPlayer::IsStealth()
+{
+	return MatchCountdown > 0.f;
 }

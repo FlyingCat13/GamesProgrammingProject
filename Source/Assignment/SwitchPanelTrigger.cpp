@@ -79,7 +79,7 @@ void ASwitchPanelTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer
 
 void ASwitchPanelTrigger::Showcase_Implementation(FText& Tooltip)
 {
-	if (!CheckUnlock)
+	if (!CheckUnlock())
 	{
 		Tooltip = FText::FromString("Hmm a switch panel. Try a combination or something!");
 	}

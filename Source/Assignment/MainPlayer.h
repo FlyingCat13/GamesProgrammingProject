@@ -53,10 +53,15 @@ public:
 	void ResetDebuff();
 	void LightMatch(float MatchDuration);
 	float GetHealthPercentage();
+	void SetDecayRate(float NewDecayRate);
+	void ResetDecayRate();
 
 	// Interaction reach length related functions
 	void SetReachLength(int NewReachLength);
 	void ResetReachLength();
+
+	// Stealth (ability gained in match lighting mode)
+	bool IsStealth();
 
 protected:
 	// Utility constant
@@ -82,6 +87,8 @@ protected:
 	float DebuffCountdown = BASE_DEBUFF_COUNTDOWN;
 	// Countdown until match runs out of light.
 	float MatchCountdown = 0.f;
+	// Health decay rate
+	float DecayRate = BASE_DEBUFF_DECAY_RATE;
 
 	// Handles moving forward/backward
 	void MoveForward(float Val);

@@ -44,6 +44,9 @@ void AFusedDoorTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer, 
 			{
 				DynamicMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);
 			}
+			// Remove Fuse from ... everywhere.
+			InteractingPlayer->RemoveItemFromInventory(Fuse);
+			Fuse->Destroy();
 		}
 		else
 		{
