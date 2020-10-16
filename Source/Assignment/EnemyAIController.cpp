@@ -62,8 +62,6 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-
 	if (TargetPlayer)
 	{
 		BlackboardComponent->SetValueAsVector("PlayerPosition", TargetPlayer->GetActorLocation());
