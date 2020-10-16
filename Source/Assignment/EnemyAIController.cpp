@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+// Majority of this code is from the labs so the comments are only there for the parts that are different.
 
 #include "EnemyAIController.h"
 #include "Kismet/GameplayStatics.h"
@@ -64,20 +64,6 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 
 	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
-	// Check if player is using stealth and if player is close (player will have increased drain rate if so)
-	if (Player)
-	{
-		// Squared, so actual distance is 400.
-		if ((GetPawn()->GetActorLocation() - Player->GetActorLocation()).SizeSquared() < 40000.f)
-		{
-			Player->SetDecayRate(20.f);
-		}
-		else
-		{
-			Player->ResetDecayRate();
-		}
-	}
-
 	if (TargetPlayer)
 	{
 		BlackboardComponent->SetValueAsVector("PlayerPosition", TargetPlayer->GetActorLocation());
@@ -105,20 +91,15 @@ void AEnemyAIController::GenerateNewRandomLocation()
 
 void AEnemyAIController::SwitchPatrolPoint()
 {
-	if (TargetPatrolPoint == 1)
-	{
-		TargetPatrolPoint = 0;
-	}
-	else
-	{
-		TargetPatrolPoint = 1;
-	}
+	// Switch patrol point and make that the next point to travel to in the blackboard.
+	TargetPatrolPoint = 1 - TargetPatrolPoint;
 	BlackboardComponent->SetValueAsVector("PatrolPoint", PATROL_LOCATION[TargetPatrolPoint]);
 }
 
 void AEnemyAIController::OnSensesUpdated(AActor* UpdatedActor, FAIStimulus Stimulus)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Sensed"));
+	// Use a reference of the MainPlayer class instead of Pawn.
 	AMainPlayer* Player = Cast<AMainPlayer>(UpdatedActor);
 	if (Player)
 	{

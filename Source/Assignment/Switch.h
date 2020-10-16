@@ -24,8 +24,11 @@ protected:
 	virtual void BeginPlay() override;
 	
 	bool Value = false;
+	// This manages whether to prevent the player from interacting with the switch (i.e. when the panel
+	// is already activated).
 	bool IsDisabled = false;
 
+	// Animated dynamic material.
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
 public:	
@@ -41,6 +44,7 @@ public:
 		void Showcase(FText& Tooltip);
 	virtual void Showcase_Implementation(FText& Tooltip) override;
 
+	// Accessors and mutators
 	bool GetValue();
 	void SetValue(bool NewValue);
 	void SetIsDisabled(bool NewStatus);

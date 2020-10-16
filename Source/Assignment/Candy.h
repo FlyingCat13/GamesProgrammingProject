@@ -30,6 +30,7 @@ protected:
 	// Amount of heal.
 	const float HEAL_AMOUNT = 50.f;
 
+	// Animated dynamic material.
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
 public:	

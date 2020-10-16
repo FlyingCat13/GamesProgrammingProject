@@ -53,8 +53,6 @@ public:
 	void ResetDebuff();
 	void LightMatch(float MatchDuration);
 	float GetHealthPercentage();
-	void SetDecayRate(float NewDecayRate);
-	void ResetDecayRate();
 
 	// Interaction reach length related functions
 	void SetReachLength(int NewReachLength);
@@ -68,6 +66,7 @@ protected:
 	const float MAX_HEALTH = 100.f;
 	const float BASE_DEBUFF_COUNTDOWN = 3.f;
 	const float BASE_DEBUFF_DECAY_RATE = 2.f;
+	const float MAX_DEBUFF_DECAY_RATE = 10.f;
 	const int BASE_REACH_LENGTH = 150;
 
 	// Reference to game mode to communicate
@@ -123,4 +122,6 @@ protected:
 	void SetDefaultCameraEffect();
 	void SetDebuffCameraEffect();
 	void SetMatchLightCameraEffect();
+
+	void CheckEnemies();
 };

@@ -31,6 +31,7 @@ void ASwitchPanelTrigger::BeginPlay()
 	DynamicMaterialInstance = BaseMesh->CreateDynamicMaterialInstance(0, Material);
 	if (DynamicMaterialInstance != nullptr)
 	{
+		// Glows red by default.
 		DynamicMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Red);
 	}
 }
@@ -46,6 +47,7 @@ void ASwitchPanelTrigger::Tick(float DeltaTime)
 		// Change colours when triggered.
 		if (DynamicMaterialInstance != nullptr)
 		{
+			// Glows green when correctly activated.
 			DynamicMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);
 		}
 
@@ -59,6 +61,7 @@ void ASwitchPanelTrigger::Tick(float DeltaTime)
 	}
 }
 
+// Go through all the switches and check it against the correct combination.
 bool ASwitchPanelTrigger::CheckUnlock()
 {
 	for (int i = 0; i < SWITCH_COUNT; i++)
@@ -77,6 +80,7 @@ void ASwitchPanelTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer
 	Tooltip = FText::GetEmpty();
 }
 
+// Tooltips on how to operate the panel.
 void ASwitchPanelTrigger::Showcase_Implementation(FText& Tooltip)
 {
 	if (!CheckUnlock())

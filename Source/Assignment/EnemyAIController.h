@@ -47,6 +47,7 @@ public:
 		UBlackboardComponent* BlackboardComponent;
 
 protected:
+	// Two locations of the fuse patroller to go around.
 	const FVector PATROL_LOCATION[2] = { FVector(-800.f, 1400.f, 33.f), FVector(0.f, 1400.f, 33.f) };
 	int TargetPatrolPoint = 1;
 
@@ -61,6 +62,7 @@ public:
 	virtual FRotator GetControlRotation() const override;
 
 	void GenerateNewRandomLocation();
+	// Switch patrol spot function for the fuse patroller.
 	void SwitchPatrolPoint();
 
 	UFUNCTION()

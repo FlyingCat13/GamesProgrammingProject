@@ -40,6 +40,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Dynamic material for indication.
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
 public:	

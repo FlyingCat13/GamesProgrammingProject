@@ -3,6 +3,7 @@
 
 #include "MainPlayer.h"
 #include "Consumable.h"
+#include "Enemy.h"
 #include "Interactable.h"
 #include "Inventoriable.h"
 
@@ -28,6 +29,8 @@ AMainPlayer::AMainPlayer()
 
 	bCanAffectNavigationGeneration = false;
 
+	// Set the player's collision channel. This is to let them not be able to phase through doors while allowing
+	// enemies to do so.
 	GetMesh()->BodyInstance.SetCollisionProfileName("Player");
 }
 
@@ -46,6 +49,8 @@ void AMainPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	CallMyTrace(false);
+
+	CheckEnemies();
 
 	float OldDebuffCountdown = DebuffCountdown;
 	// Prioritise decressing match timer first before normal timer.
@@ -432,17 +437,40 @@ void AMainPlayer::Pause()
 	GameMode->OnPressPause();
 }
 
-void AMainPlayer::SetDecayRate(float NewDecayRate)
-{
-	DecayRate = NewDecayRate;
-}
-
-void AMainPlayer::ResetDecayRate()
-{
-	DecayRate = BASE_DEBUFF_DECAY_RATE;
-}
-
+// Matches now also works as stealth.
 bool AMainPlayer::IsStealth()
 {
 	return MatchCountdown > 0.f;
+}
+
+// Sweep around to check if there is any nearby enemies. Increase drain rate if do.
+void AMainPlayer::CheckEnemies()
+{
+	FVector StartTrace = GetActorLocation();
+	FVector EndTrace = StartTrace;
+	EndTrace.Z += 300.0f;
+
+	TArray<FHitResult> HitActors;
+
+	FCollisionShape CollisionShape;
+	CollisionShape.ShapeType = ECollisionShape::Sphere;
+	CollisionShape.SetSphere(100.f);
+
+	DecayRate = BASE_DEBUFF_DECAY_RATE;
+	if (GetWorld()->SweepMultiByChannel(HitActors, StartTrace, EndTrace, FQuat::FQuat(), ECC_WorldStatic, CollisionShape))
+	{
+		int EnemyCount = 0;
+		for (auto Actor = HitActors.CreateIterator(); Actor; Actor++)
+		{
+			AEnemy* Enemy = Cast<AEnemy>((*Actor).GetActor());
+			if (Enemy)
+			{
+				EnemyCount++;
+			}
+		}
+		if (EnemyCount > 0)
+		{
+			DecayRate = MAX_DEBUFF_DECAY_RATE;
+		}
+	}
 }

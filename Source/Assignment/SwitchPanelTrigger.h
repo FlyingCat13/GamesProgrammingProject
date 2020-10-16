@@ -31,10 +31,13 @@ protected:
 
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
+	// The switches that are linked to the panel.
 	UPROPERTY(EditAnywhere)
 		ASwitch* Switches[SWITCH_COUNT];
+	// The correct switch combination.
 	bool UnlockCombination[SWITCH_COUNT] = { false, true, true };
 
+	// Check if the switch combination is correct (checked every tick).
 	bool CheckUnlock();
 
 public:

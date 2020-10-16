@@ -27,6 +27,7 @@ protected:
 	
 	const int REACH_LENGTH = 500;
 
+	// Animated dynamic material.
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
 public:	

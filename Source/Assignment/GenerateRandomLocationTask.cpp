@@ -4,6 +4,7 @@
 #include "GenerateRandomLocationTask.h"
 #include "EnemyAIController.h"
 
+// Behavior tree task to call the random location function in the controller.
 EBTNodeResult::Type UGenerateRandomLocationTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBehaviorTreeComponent* Component = &OwnerComp;

@@ -36,11 +36,13 @@ void AInteractableDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Find the materials to set dynamic properties.
 	UMaterialInterface* DoorFrameMaterial = DoorFrame->GetMaterial(0);
 	DoorFrameMaterialInstance = DoorFrame->CreateDynamicMaterialInstance(0, DoorFrameMaterial);
 	UMaterialInterface* DoorMaterial = Door->GetMaterial(0);
 	DoorMaterialInstance = Door->CreateDynamicMaterialInstance(0, DoorMaterial);
 
+	// By default, the door is unlocked, so it will glow green.
 	if (DoorFrameMaterialInstance && DoorMaterialInstance)
 	{
 		DoorFrameMaterialInstance->SetVectorParameterValue("Emissive Colour", FLinearColor::Green);

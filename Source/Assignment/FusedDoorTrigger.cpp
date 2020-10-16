@@ -30,14 +30,16 @@ void AFusedDoorTrigger::BeginPlay()
 
 void AFusedDoorTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tooltip)
 {
+	// Only have meaningful interactions when it is not activated.
 	if (!IsActivated)
-	{
+	{	
+		// If the equipped item is indeed a fuse, unlock the door.
 		if (Fuse != nullptr && Fuse == InteractingPlayer->GetEquippedItem())
 		{
 			IsActivated = true;
 			// Output the tooltip to display on HUD
 			Tooltip = FText::FromString("That was not conFusing at all!\nA door has been unlocked");
-			// Unlock the designated door by broadcasting an event.
+			// Unlock the designated door by broadcasting an event (already registered in the parent Trigger class).
 			OnUnlockDoorEvent.Broadcast();
 			// Change colours when triggered.
 			if (DynamicMaterialInstance != nullptr)

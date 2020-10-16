@@ -17,9 +17,11 @@ public:
 	// Sets default values for this actor's properties
 	AFusedDoorTrigger();
 
+	// The fuse that can activate the trigger.
 	UPROPERTY(EditAnywhere)
 		AFuse* Fuse;
 
+	// Overriding default trigger's Interactable functions
 	virtual void Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tooltip) override;
 	virtual void Showcase_Implementation(FText& Tooltip) override;
 

@@ -4,6 +4,7 @@
 #include "SwitchPatrolPointTask.h"
 #include "EnemyAIController.h"
 
+// Task to rotate the patrol point of the fuse patroller.
 EBTNodeResult::Type USwitchPatrolPointTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBehaviorTreeComponent* Component = &OwnerComp;

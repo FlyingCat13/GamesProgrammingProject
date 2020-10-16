@@ -28,6 +28,7 @@ protected:
 
 	const float MATCH_DURATION = 5.f;
 
+	// Animated dynamic material.
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
 public:	

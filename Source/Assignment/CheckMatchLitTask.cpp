@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MainPlayer.h"
 
+// Task to stop Enemy pursuit when the player has the match light on
 EBTNodeResult::Type UCheckMatchLitTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));

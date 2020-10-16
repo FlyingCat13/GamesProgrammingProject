@@ -25,6 +25,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Animated dynamic material.
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
 
 public:	

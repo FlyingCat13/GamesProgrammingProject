@@ -43,6 +43,7 @@ protected:
 
 	bool IsOpened = false;
 
+	// Dynamic material for glowing effects.
 	UMaterialInstanceDynamic* DoorFrameMaterialInstance;
 	UMaterialInstanceDynamic* DoorMaterialInstance;
 

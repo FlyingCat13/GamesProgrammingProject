@@ -53,12 +53,14 @@ void ASwitch::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Too
 {
 	// Update tooltip
 	Tooltip = FText::GetEmpty();
+	// Flip the value of the switch.
 	SetValue(!Value);
 }
 
 // Description
 void ASwitch::Showcase_Implementation(FText& Tooltip)
 {
+	// Do not show interacting tool tip when disabled.
 	if (!IsDisabled)
 	{
 		Tooltip = FText::FromString("Press E to flip the switch");
@@ -74,6 +76,7 @@ bool ASwitch::GetValue()
 	return Value;
 }
 
+// Mutator only works when the switch is not disabled.
 void ASwitch::SetValue(bool NewValue)
 {
 	if (IsDisabled)
@@ -84,13 +87,15 @@ void ASwitch::SetValue(bool NewValue)
 	Value = NewValue;
 	if (Value)
 	{
+		// Green for true value ...
 		if (DynamicMaterialInstance != nullptr)
 		{
 			DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Green);
 		}
 	}
 	else
-	{
+	{	
+		// ... red otherwise.
 		if (DynamicMaterialInstance != nullptr)
 		{
 			DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Red);
