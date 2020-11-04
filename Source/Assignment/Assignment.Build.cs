@@ -8,8 +8,14 @@ public class Assignment : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "GameplayTasks" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Niagara", "NavigationSystem", "GameplayTasks" });
 
+        PublicIncludePaths.AddRange(new string[] {
+            "Assignment",
+            "C:/Program Files/Epic Games/UE_4.25/Engine/Plugins/FX/Niagara/Source/Niagara/Public",
+            "C:/Program Files/Epic Games/UE_4.25/Engine/Plugins/FX/Niagara/Source/Niagara/Classes",
+            "C:/Program Files/Epic Games/UE_4.25/Engine/Plugins/FX/Niagara/Source/Niagara/Private"
+        });
 
         PrivateDependencyModuleNames.AddRange(new string[] {  });
 

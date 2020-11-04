@@ -33,6 +33,7 @@ void ADoorTrigger::BeginPlay()
 	if (DynamicMaterialInstance != nullptr)
 	{
 		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Red);
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor::Red);
 	}
 }
 
@@ -54,6 +55,7 @@ void ADoorTrigger::Interact_Implementation(AMainPlayer* InteractingPlayer, FText
 	if (DynamicMaterialInstance != nullptr)
 	{
 		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Green);
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor::Green);
 	}
 }
 

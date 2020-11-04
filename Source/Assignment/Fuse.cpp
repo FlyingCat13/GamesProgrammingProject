@@ -46,13 +46,6 @@ void AFuse::BeginPlay()
 void AFuse::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// Change between two colours by lerping.
-	if (DynamicMaterialInstance != nullptr)
-	{
-		float Blend = 0.5f + FMath::Cos(GetWorld()->TimeSeconds * 5) / 2;
-		DynamicMaterialInstance->SetScalarParameterValue(TEXT("Blend"), Blend);
-	}
 }
 
 void AFuse::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tooltip)

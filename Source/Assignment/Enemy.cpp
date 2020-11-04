@@ -28,6 +28,14 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (StunDuration > 0.f)
+	{
+		StunDuration -= DeltaTime;
+		if (StunDuration <= 0.f)
+		{
+			ResetSpeed();
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -37,3 +45,19 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+// Called when the enemy is stunned. Reduce move speed to 0.
+void AEnemy::OnStunned(float NewStunDuration)
+{
+	StunDuration = NewStunDuration;
+	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	GetCharacterMovement()->MaxFlySpeed = 0.f;
+	GetCharacterMovement()->MaxCustomMovementSpeed = 0.f;
+}
+
+// Called when the enemy is no longer stunned. Reset all move speeds.
+void AEnemy::ResetSpeed()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 450.f;
+	GetCharacterMovement()->MaxFlySpeed = 450.f;
+	GetCharacterMovement()->MaxCustomMovementSpeed = 450.f;
+}

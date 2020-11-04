@@ -38,6 +38,7 @@ void ASwitch::BeginPlay()
 	if (DynamicMaterialInstance != nullptr)
 	{
 		DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Red);
+		DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor::Red);
 	}
 }
 
@@ -91,6 +92,7 @@ void ASwitch::SetValue(bool NewValue)
 		if (DynamicMaterialInstance != nullptr)
 		{
 			DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Green);
+			DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor::Green);
 		}
 	}
 	else
@@ -99,6 +101,7 @@ void ASwitch::SetValue(bool NewValue)
 		if (DynamicMaterialInstance != nullptr)
 		{
 			DynamicMaterialInstance->SetVectorParameterValue("Colour 1", FLinearColor::Red);
+			DynamicMaterialInstance->SetVectorParameterValue("Colour 2", FLinearColor::Red);
 		}
 	}
 }
