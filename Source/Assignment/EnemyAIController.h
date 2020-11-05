@@ -46,9 +46,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Blackboard")
 		UBlackboardComponent* BlackboardComponent;
 
-protected:
 	// Two locations of the fuse patroller to go around.
-	const FVector PATROL_LOCATION[2] = { FVector(-800.f, 1400.f, 33.f), FVector(0.f, 1400.f, 33.f) };
+	UPROPERTY(EditAnywhere)
+		TArray<FVector> PatrolLocations = { FVector(-800.f, 1400.f, 33.f), FVector(0.f, 1400.f, 33.f) };
+
+protected:
 	int TargetPatrolPoint = 1;
 
 	virtual void BeginPlay() override;

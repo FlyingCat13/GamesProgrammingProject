@@ -91,7 +91,7 @@ void AEnemyAIController::SwitchPatrolPoint()
 {
 	// Switch patrol point and make that the next point to travel to in the blackboard.
 	TargetPatrolPoint = 1 - TargetPatrolPoint;
-	BlackboardComponent->SetValueAsVector("PatrolPoint", PATROL_LOCATION[TargetPatrolPoint]);
+	BlackboardComponent->SetValueAsVector("PatrolPoint", PatrolLocations[TargetPatrolPoint]);
 }
 
 void AEnemyAIController::OnSensesUpdated(AActor* UpdatedActor, FAIStimulus Stimulus)

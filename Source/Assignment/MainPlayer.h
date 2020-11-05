@@ -65,7 +65,7 @@ protected:
 	// Utility constant
 	const float MAX_HEALTH = 100.f;
 	const float BASE_DEBUFF_COUNTDOWN = 3.f;
-	const float BASE_DEBUFF_DECAY_RATE = 2.f;
+	const float BASE_DEBUFF_DECAY_RATE = 1.5f;
 	const float MAX_DEBUFF_DECAY_RATE = 10.f;
 	const int BASE_REACH_LENGTH = 150;
 

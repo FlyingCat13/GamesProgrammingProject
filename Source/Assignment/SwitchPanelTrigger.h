@@ -35,7 +35,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 		ASwitch* Switches[SWITCH_COUNT];
 	// The correct switch combination.
-	bool UnlockCombination[SWITCH_COUNT] = { false, true, true };
+	UPROPERTY(EditAnywhere)
+		TArray<bool> UnlockCombination = { true, true, true };
 
 	// Check if the switch combination is correct (checked every tick).
 	bool CheckUnlock();
