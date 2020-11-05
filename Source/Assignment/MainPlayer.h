@@ -61,6 +61,9 @@ public:
 	// Stealth (ability gained in match lighting mode)
 	bool IsStealth();
 
+	// Real speed mutator (speed without stealth buff)
+	void SetRealSpeed(float Speed);
+
 protected:
 	// Utility constant
 	const float MAX_HEALTH = 100.f;
@@ -68,6 +71,7 @@ protected:
 	const float BASE_DEBUFF_DECAY_RATE = 1.5f;
 	const float MAX_DEBUFF_DECAY_RATE = 10.f;
 	const int BASE_REACH_LENGTH = 150;
+	const float DEFAULT_SPEED = 600.f;
 
 	// Reference to game mode to communicate
 	AAssignmentGameMode* GameMode;
@@ -88,6 +92,8 @@ protected:
 	float MatchCountdown = 0.f;
 	// Health decay rate
 	float DecayRate = BASE_DEBUFF_DECAY_RATE;
+	// Real speed (speed without match buff)
+	float RealSpeed = 600.f;
 
 	// Handles moving forward/backward
 	void MoveForward(float Val);
@@ -123,5 +129,9 @@ protected:
 	void SetDebuffCameraEffect();
 	void SetMatchLightCameraEffect();
 
+	// Check for enemies around.
 	void CheckEnemies();
+
+	// Actor speed mutator.
+	void SetActorSpeed(float Speed);
 };

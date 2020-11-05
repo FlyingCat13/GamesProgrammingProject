@@ -4,6 +4,7 @@
 #include "MainPlayer.h"
 #include "Consumable.h"
 #include "Enemy.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Interactable.h"
 #include "Inventoriable.h"
 
@@ -55,12 +56,16 @@ void AMainPlayer::Tick(float DeltaTime)
 	float OldDebuffCountdown = DebuffCountdown;
 	// Prioritise decressing match timer first before normal timer.
 	if (MatchCountdown > 0.f)
-	{
+	{	
+		// As long as the match is on, the player will not be slowed down.
+		SetActorSpeed(DEFAULT_SPEED);
 		MatchCountdown -= DeltaTime;
 		// If match runs out, switch to normal if debuff countdown is still positive 
 		// or switch to Cursed if otherwise.
 		if (MatchCountdown < 0.f)
-		{
+		{	
+			// Set speed to actual speed if match is out..
+			SetActorSpeed(RealSpeed);
 			if (DebuffCountdown > 0.f)
 			{
 				// Switch back to default camera effect
@@ -375,6 +380,8 @@ void AMainPlayer::LightMatch(float MatchDuration)
 {
 	// Activate match by setting match duration.
 	MatchCountdown = MatchDuration;
+	// Set the player's speed to default speed regardless of circumstances.
+	SetActorSpeed(DEFAULT_SPEED);
 	// Switch to match light camera effect.
 	SetMatchLightCameraEffect();
 }
@@ -473,4 +480,17 @@ void AMainPlayer::CheckEnemies()
 			DecayRate = MAX_DEBUFF_DECAY_RATE;
 		}
 	}
+}
+
+void AMainPlayer::SetRealSpeed(float Speed)
+{
+	RealSpeed = Speed;
+	SetActorSpeed(Speed);
+}
+
+void AMainPlayer::SetActorSpeed(float Speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Speed;
+	GetCharacterMovement()->MaxFlySpeed = Speed;
+	GetCharacterMovement()->MaxCustomMovementSpeed = Speed;
 }
