@@ -95,6 +95,10 @@ protected:
 	// Real speed (speed without match buff)
 	float RealSpeed = 600.f;
 
+	// Camera's post process material
+	UMaterial* PostProcessMaterial;
+	UMaterialInstanceDynamic* PostProcessMaterialInstance;
+
 	// Handles moving forward/backward
 	void MoveForward(float Val);
 
@@ -128,6 +132,7 @@ protected:
 	void SetDefaultCameraEffect();
 	void SetDebuffCameraEffect();
 	void SetMatchLightCameraEffect();
+	void SetDamagedCameraEffect();
 
 	// Check for enemies around.
 	void CheckEnemies();

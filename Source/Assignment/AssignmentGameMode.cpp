@@ -17,6 +17,13 @@ AAssignmentGameMode::AAssignmentGameMode()
     WidgetClass[PauseState] = UPauseScreen::StaticClass();
     WidgetClass[LoseState] = ULoseScreen::StaticClass();
     WidgetClass[WinState] = UWinScreen::StaticClass();
+    WidgetClass[CutSceneState] = UBlankWidget::StaticClass();
+
+    ConstructorHelpers::FObjectFinder<ULevelSequence> LevelSequenceAsset(TEXT("/Game/Cinematics/Master.Master"));
+    if (LevelSequenceAsset.Succeeded())
+    {
+        LevelSequence = LevelSequenceAsset.Object;
+    }
 }
 
 // Set up all the widgets beforehand and start with menu state.
@@ -24,11 +31,41 @@ void AAssignmentGameMode::BeginPlay()
 {
     Super::BeginPlay();
 
+    // Only play cut scene when first played.
+    bool CutScene = UGameplayStatics::ParseOption(OptionsString, "CutScene") == "True";
+    bool Play = UGameplayStatics::ParseOption(OptionsString, "Play") == "True";
+
+    if (Play)
+    {
+        SwitchToMenuState();
+    }
+    else if (CutScene)
+    {
+        SwitchToCutSceneState();
+
+        ALevelSequenceActor* OutActor;
+        if (LevelSequence)
+        {
+            ULevelSequencePlayer* LevelSequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), LevelSequence, FMovieSceneSequencePlaybackSettings(), OutActor);
+            if (LevelSequencePlayer)
+            {
+                LevelSequencePlayer->OnFinished.AddDynamic(this, &AAssignmentGameMode::FinishCutScene);
+                LevelSequencePlayer->Play();
+            }
+        }
+    }
+    else
+    {
+        // Switch to sequence level
+        UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Levels/SequencerLevel"), false, "CutScene=True");
+    }
+
     // Subscribe to the player die event to trigger OnLose() function when the player dies.
     AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-    Player->OnPlayerDieEvent.AddDynamic(this, &AAssignmentGameMode::OnLose);
-
-    SwitchToMenuState();
+    if (Player)
+    {
+        Player->OnPlayerDieEvent.AddDynamic(this, &AAssignmentGameMode::OnLose);
+    }
 }
 
 // Update the time that the tooltip for interacted item. If duration expires, update the HUD.
@@ -275,4 +312,17 @@ void AAssignmentGameMode::SwitchToLoseState()
         PlayerController->bEnableClickEvents = true;
         PlayerController->bEnableMouseOverEvents = true;
     }
+}
+
+void AAssignmentGameMode::SwitchToCutSceneState()
+{
+    UE_LOG(LogClass, Warning, TEXT("Cut Scene"));
+    // Switch widget
+    ChangeOnScreenWidget(CutSceneState);
+    UGameplayStatics::SetGamePaused(GetWorld(), false);
+}
+
+void AAssignmentGameMode::FinishCutScene()
+{
+    UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Levels/GameLevel0"), false, "Play=True");
 }

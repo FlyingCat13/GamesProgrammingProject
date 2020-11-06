@@ -2,10 +2,13 @@
 
 #pragma once
 
+#include "BlankWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "InGameHUD.h"
+#include "LevelSequence.h"
+#include "LevelSequencePlayer.h"
 #include "LoseScreen.h"
 #include "MainMenuUI.h"
 #include "PauseScreen.h"
@@ -39,6 +42,7 @@ protected:
 		PauseState = 2,
 		WinState = 3,
 		LoseState = 4,
+		CutSceneState = 5,
 	};
 	// Current game state
 	GameState CurrentState;
@@ -46,7 +50,7 @@ protected:
 	// The current widget on screen.
 	UUserWidget* CurrentWidget;
 	// The Widget classes that would be used.
-	TSubclassOf<UUserWidget> WidgetClass[5];
+	TSubclassOf<UUserWidget> WidgetClass[6];
 
 	// Tooltip for the interactable item that the player is looking at.
 	FText LookAtItemTooltip;
@@ -54,6 +58,9 @@ protected:
 	FText InteractedItemTooltip;
 	// Duration for the interact tooltip to stay on screen.
 	float InteractedItemTooltipDuration = 0.f;
+	
+	// Cutscene
+	ULevelSequence* LevelSequence;
 
 	// Change on screen overlay based on the state that is being changed to.
 	void ChangeOnScreenWidget(GameState NewState);
@@ -66,13 +73,20 @@ protected:
 	void UpdateInventoryStatus(UInGameHUD* InGameHUD, AMainPlayer* Player);
 
 	// Functions to switch states.
-	void SwitchToMenuState();
+	// UFUNCTION to allow this to be used with AddDynamic.
+	UFUNCTION()
+		void SwitchToMenuState();
 	// UFUNCTION to allow this to be used with AddDynamic.
 	UFUNCTION()
 		void SwitchToPlayState();
 	void SwitchToPauseState();
 	void SwitchToWinState();
 	void SwitchToLoseState();
+	void SwitchToCutSceneState();
+
+	// UFUNCTION to allow this to be used with AddDynamic.
+	UFUNCTION()
+		void FinishCutScene();
 
 	// Callback for quitting the game.
 	UFUNCTION()

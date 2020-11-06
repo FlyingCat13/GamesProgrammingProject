@@ -19,14 +19,18 @@ AMainPlayer::AMainPlayer()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 70.f);
 
+	// Set custom material for the camera
+	ConstructorHelpers::FObjectFinder<UMaterial> MaterialAsset(TEXT("/Game/StarterContent/Materials/PostProcessMaterial.PostProcessMaterial"));
+	if (MaterialAsset.Succeeded())
+	{
+		PostProcessMaterial = MaterialAsset.Object;
+	}
+
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
-	// Override post processing settings for the camera effects.
-	FirstPersonCameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
-	FirstPersonCameraComponent->PostProcessSettings.bOverride_SceneColorTint = true;
 
 	bCanAffectNavigationGeneration = false;
 
@@ -39,7 +43,17 @@ AMainPlayer::AMainPlayer()
 void AMainPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// Set up post process material instance.
+	if (PostProcessMaterial)
+	{
+		PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(PostProcessMaterial, this);
+		if (PostProcessMaterialInstance)
+		{
+			FirstPersonCameraComponent->AddOrUpdateBlendable(PostProcessMaterialInstance);
+		}
+	}
+
 	GameMode = Cast<AAssignmentGameMode>(GetWorld()->GetAuthGameMode());
 	SetDefaultCameraEffect();
 }
@@ -73,11 +87,6 @@ void AMainPlayer::Tick(float DeltaTime)
 				// DebuffCountdown absorb the negative value of MatchCountdown
 				DebuffCountdown += MatchCountdown;
 			}
-			else
-			{
-				// Switch back to debuff camera effect
-				SetDebuffCameraEffect();
-			}
 		}
 	}
 	else if (DebuffCountdown > 0.f)
@@ -93,7 +102,6 @@ void AMainPlayer::Tick(float DeltaTime)
 		// negative time to calculate health decay value.
 		if (OldDebuffCountdown > 0.f)
 		{
-			SetDebuffCameraEffect();
 			DebuffDeltaTime = -DebuffCountdown;
 			// Give DebuffCountdown a negative value so this if branch will not be triggered
 			// in the future unless DebuffCountdown is set to positive later.
@@ -103,6 +111,16 @@ void AMainPlayer::Tick(float DeltaTime)
 		// Decrease player's health with rate coinciding with delta time.
 		if (MatchCountdown <= 0.f)
 		{
+			if (DecayRate > BASE_DEBUFF_DECAY_RATE)
+			{
+				// If player is damaged by ghost, pink overlay.
+				SetDamagedCameraEffect();
+			}
+			else
+			{
+				// If player is damaged by normal environment, red overlay.
+				SetDebuffCameraEffect();
+			}
 			Health -= DecayRate * DebuffDeltaTime;
 		}
 	}
@@ -405,23 +423,42 @@ void AMainPlayer::ResetReachLength()
 
 void AMainPlayer::SetDefaultCameraEffect()
 {
-	// Dark normal colour.
-	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = -.25f;
-	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, 1.f, 1.f);
+	// Normal colour overlay.
+	if (PostProcessMaterialInstance)
+	{
+		PostProcessMaterialInstance->SetScalarParameterValue("Overlay", 0.f);
+		PostProcessMaterialInstance->SetVectorParameterValue("Color", FLinearColor(1.f, 1.f, 1.f));
+	}
 }
 
 void AMainPlayer::SetDebuffCameraEffect()
 {
-	// Slightly brighter but red tint.
-	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = 1.f;
-	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, .4f, .4f, .5f);
+	// Red colour overlay.
+	if (PostProcessMaterialInstance)
+	{
+		PostProcessMaterialInstance->SetScalarParameterValue("Overlay", .5f);
+		PostProcessMaterialInstance->SetVectorParameterValue("Color", FLinearColor(1.f, 0.f, 0.f));
+	}
 }
 
 void AMainPlayer::SetMatchLightCameraEffect()
 {
-	// Very bright with warm tint.
-	FirstPersonCameraComponent->PostProcessSettings.AutoExposureBias = 3.f;
-	FirstPersonCameraComponent->PostProcessSettings.SceneColorTint = FLinearColor(1.f, .6f, 0.f);
+	// Warm overlay.
+	if (PostProcessMaterialInstance)
+	{
+		PostProcessMaterialInstance->SetScalarParameterValue("Overlay", .75f);
+		PostProcessMaterialInstance->SetVectorParameterValue("Color", FLinearColor(1.f, .6f, 0.f));
+	}
+}
+
+void AMainPlayer::SetDamagedCameraEffect()
+{
+	// Pink overlay.
+	if (PostProcessMaterialInstance)
+	{
+		PostProcessMaterialInstance->SetScalarParameterValue("Overlay", .75f);
+		PostProcessMaterialInstance->SetVectorParameterValue("Color", FLinearColor(1.f, 0.f, .6f));
+	}
 }
 
 void AMainPlayer::SwitchInventory()
