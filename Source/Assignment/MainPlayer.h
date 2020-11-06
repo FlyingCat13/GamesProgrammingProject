@@ -64,6 +64,11 @@ public:
 	// Real speed mutator (speed without stealth buff)
 	void SetRealSpeed(float Speed);
 
+	// Leash player
+	void Leash(float Duration, int Threshold);
+	// Leash status
+	bool IsLeashed();
+
 protected:
 	// Utility constant
 	const float MAX_HEALTH = 100.f;
@@ -94,6 +99,13 @@ protected:
 	float DecayRate = BASE_DEBUFF_DECAY_RATE;
 	// Real speed (speed without match buff)
 	float RealSpeed = 600.f;
+
+	// Leashed duration
+	float LeashDuration = 0.f;
+	// Leash escape hit count
+	int LeashEscapeCount = 0;
+	// Leash escape threshold
+	int LeashThreshold = 0;
 
 	// Camera's post process material
 	UMaterial* PostProcessMaterial;
@@ -139,4 +151,7 @@ protected:
 
 	// Actor speed mutator.
 	void SetActorSpeed(float Speed);
+
+	// Increase escape count.
+	void Escape();
 };

@@ -67,12 +67,37 @@ void AMainPlayer::Tick(float DeltaTime)
 
 	CheckEnemies();
 
+	// Check leash status
+	if (LeashEscapeCount > LeashThreshold)
+	{
+		LeashDuration = -1.f;
+	}
+
+	// If leashed, set speed to 0, otherwise use real speed (in case of slow zone).
+	if (LeashDuration > 0.f)
+	{
+		LeashDuration -= DeltaTime;
+		SetActorSpeed(0.f);
+		// Inflict damage if the leash goes for full duration.
+		if (LeashDuration <= 0.f)
+		{
+			Health -= 20.f;
+		}
+	}
+	else
+	{
+		SetActorSpeed(RealSpeed);
+	}
+
 	float OldDebuffCountdown = DebuffCountdown;
 	// Prioritise decressing match timer first before normal timer.
 	if (MatchCountdown > 0.f)
 	{	
-		// As long as the match is on, the player will not be slowed down.
-		SetActorSpeed(DEFAULT_SPEED);
+		// As long as the match is on and player is not leashed, the player will not be slowed down.
+		if (LeashDuration <= 0.f)
+		{
+			SetActorSpeed(DEFAULT_SPEED);
+		}
 		MatchCountdown -= DeltaTime;
 		// If match runs out, switch to normal if debuff countdown is still positive 
 		// or switch to Cursed if otherwise.
@@ -154,6 +179,9 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	// Bind pause event
 	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AMainPlayer::Pause).bExecuteWhenPaused = true;
+
+	// Bind escape event
+	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &AMainPlayer::Escape);
 }
 
 void AMainPlayer::AddItemToInventory(AActor* ItemToAdd)
@@ -519,15 +547,36 @@ void AMainPlayer::CheckEnemies()
 	}
 }
 
+// Set speed without buffs.
 void AMainPlayer::SetRealSpeed(float Speed)
 {
 	RealSpeed = Speed;
 	SetActorSpeed(Speed);
 }
 
+// Set actual actor speed.
 void AMainPlayer::SetActorSpeed(float Speed)
 {
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 	GetCharacterMovement()->MaxFlySpeed = Speed;
 	GetCharacterMovement()->MaxCustomMovementSpeed = Speed;
+}
+
+// Apply leash debuff.
+void AMainPlayer::Leash(float Duration, int Threshold)
+{
+	LeashDuration = Duration;
+	LeashThreshold = Threshold;
+	LeashEscapeCount = 0;
+}
+
+// Leash status
+bool AMainPlayer::IsLeashed()
+{
+	return LeashDuration > 0.f;
+}
+
+void AMainPlayer::Escape()
+{
+	LeashEscapeCount++;
 }

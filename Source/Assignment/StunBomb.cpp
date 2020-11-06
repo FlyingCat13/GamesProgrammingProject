@@ -55,7 +55,7 @@ void AStunBomb::Tick(float DeltaTime)
 void AStunBomb::Interact_Implementation(AMainPlayer* InteractingPlayer, FText& Tooltip)
 {
 	// Update tooltip
-	Tooltip = FText::FromString("Okay ghosts are frozen, run!!!!!");
+	Tooltip = FText::FromString("Freezing ghosts eh?");
 	InteractingPlayer->AddItemToInventory(this);
 	// Hide from game world because it is in inventory now.
 	SetActorHiddenInGame(true);
@@ -70,6 +70,7 @@ void AStunBomb::Showcase_Implementation(FText& Tooltip)
 
 void AStunBomb::OnConsume_Implementation(AMainPlayer* InteractingPlayer)
 {
+	// Spawn particle at player's location.
 	UNiagaraComponent* ParticleEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(),
 		ParticleFX,
@@ -82,11 +83,7 @@ void AStunBomb::OnConsume_Implementation(AMainPlayer* InteractingPlayer)
 		true
 	);
 
-	if (ParticleEffect)
-	{
-		UE_LOG(LogClass, Warning, TEXT("Particle"));
-	}
-
+	// Trace around the player for enemies to stun.
 	FVector StartTrace = InteractingPlayer->GetActorLocation();
 	FVector EndTrace = StartTrace;
 	EndTrace.Z += 300.0f;

@@ -18,6 +18,7 @@ ASlowZone::ASlowZone()
 
 void ASlowZone::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
+	// Check for player to slow.
 	if (OtherActor && OtherActor != this)
 	{
 		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
@@ -30,6 +31,7 @@ void ASlowZone::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 
 void ASlowZone::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 {
+	// Check for player to unslow.
 	if (OtherActor && OtherActor != this)
 	{
 		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
