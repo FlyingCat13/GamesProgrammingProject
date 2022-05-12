@@ -57,3 +57,5 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 Project documentation.docx
+Demonstration_*
+Project_documentation*
