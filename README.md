@@ -39,6 +39,3 @@ Stick: extend reach range
 Key: equip when opening a matched door to unlock it.
 Fuse: activate the fused door trigger
 Trophy: win condition item
-
-Further is contained in Project_Documentation_2.pdf
-Demonstration video is in Demonstration_2.mp4 and Demonstration_2+.mp4
